@@ -10,26 +10,95 @@ import UIKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
+    
+    var window: UIWindow?
+    let backgroundTaskTimer = BackgroundTaskTimer()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+
+        print(type(of: self), #function)
+
+        setupWindow()
+        
+        return true
+    }
+    
+    func application(_ application: UIApplication, willFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+
+        print(type(of: self), #function)
+
         return true
     }
 
-    // MARK: UISceneSession Lifecycle
-
-    func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
-        // Called when a new scene session is being created.
-        // Use this method to select a configuration to create the new scene with.
-        return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
+    func applicationDidBecomeActive(_ application: UIApplication) {
+        print(type(of: self), #function)
+        
+        // End background task
+        backgroundTaskTimer.stopCalculations()
     }
 
-    func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {
-        // Called when the user discards a scene session.
-        // If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.
-        // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
+    func applicationWillResignActive(_ application: UIApplication) {
+        print(type(of: self), #function)
+        
+        // Start background task
+        backgroundTaskTimer.startBackgroundTask()
     }
 
+    func applicationWillTerminate(_ application: UIApplication) {
+        print(type(of: self), #function)
+    }
+
+    func applicationDidEnterBackground(_ application: UIApplication) {
+        print(type(of: self), #function)
+        
+        /**
+         # Результаты замера времени исполнения приложения в фоне
+         
+         Я произвёл замеры на нескольких устройствах и разных операционных системах. Я не выявил какой-либо зависимости от устройства, но вот на разных версиях операционной системы поведение достаточно сильно отличается.
+         
+         ## До iOS 13
+         
+         Измерения проводились на симуляторах
+         
+         * iPhone 7 (iOS 11.4)
+         * iPhone 6 (iOS 12.4)
+         
+         Приложение первоначально сообщает примерно 180 секунд (в консоль выводилось ~179.6)
+         За 5 секунд до окончания система вызывает `expirationHandler` и выполнение задачи прекращается
+         
+         Итоговый результат - **175 секунд**
+         
+         ## iOS 13 и выше
+         
+         Измерения проводилось на следующих устройствах:
+         
+         * iPhone 12 Pro (iOS 14.3)
+         * iPad Pro 9.7 inch (iOS 14.3)
+         * iPhone X (iOS 14.2)
+         * iPhone SE 1st gen (iOS 14.2)
+         * iPhone SE 2nd gen (iOS 13.7)
+         
+         На всех устройствах приложение даёт на выполнение задания 30 секунд (первый вывод в консоль ~29.6 секунд)
+         
+          *Примечание: в некоторых случаях изначально сообщается бесконечное время, например 1.7976931348623157e+308 секунд, но после пары выводов таких чисел в консоль пересчитывается на 30 секунд*
+         
+         За 5 секунд до окончания система вызывает `expirationHandler`, он отрабатывает, но выполнение фонового задания **не прекращается**. Задание завершается только когда остаётся 0 секунд.
+         
+         Итоговый результат - **30 секунд**
+ 
+         */
+        
+    }
+
+    func applicationWillEnterForeground(_ application: UIApplication) {
+        print(type(of: self), #function)
+    }
+
+    private func setupWindow() {
+        window = UIWindow(frame: UIScreen.main.bounds)
+        window?.rootViewController = RootTabBarController()
+        window?.makeKeyAndVisible()
+    }
 
 }
 
